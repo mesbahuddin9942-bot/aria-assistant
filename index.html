@@ -1,0 +1,1172 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#0a0a1a">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<title>ARIA — ভয়েস অ্যাসিস্ট্যান্ট</title>
+<link rel="manifest" href="manifest.json">
+<link href="https://fonts.googleapis.com/css2?family=Tiro+Bangla:ital@0;1&family=Syne:wght@400;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #06060f;
+    --surface: #0e0e22;
+    --card: #13132a;
+    --accent: #7c6aff;
+    --accent2: #ff6ab0;
+    --accent3: #6affd4;
+    --text: #e8e8ff;
+    --muted: #6b6b9a;
+    --glow: rgba(124,106,255,0.35);
+    --glow2: rgba(255,106,176,0.25);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Syne', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  /* Animated background */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 80% 50% at 20% 20%, rgba(124,106,255,0.12) 0%, transparent 60%),
+      radial-gradient(ellipse 60% 40% at 80% 80%, rgba(255,106,176,0.1) 0%, transparent 60%),
+      radial-gradient(ellipse 50% 60% at 50% 50%, rgba(106,255,212,0.04) 0%, transparent 70%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .container {
+    width: 100%;
+    max-width: 480px;
+    padding: 20px 16px;
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+  }
+
+  /* Header */
+  header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 24px;
+    padding: 0 4px;
+  }
+
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .logo-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    box-shadow: 0 0 20px var(--glow);
+  }
+
+  .logo-text {
+    font-size: 22px;
+    font-weight: 800;
+    letter-spacing: 3px;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .logo-sub {
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin-top: -4px;
+  }
+
+  .lang-toggle {
+    display: flex;
+    background: var(--surface);
+    border-radius: 20px;
+    padding: 3px;
+    border: 1px solid rgba(124,106,255,0.2);
+  }
+
+  .lang-btn {
+    padding: 5px 12px;
+    border-radius: 16px;
+    border: none;
+    background: transparent;
+    color: var(--muted);
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.25s;
+    font-family: 'Syne', sans-serif;
+  }
+
+  .lang-btn.active {
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    color: white;
+    box-shadow: 0 0 12px var(--glow);
+  }
+
+  /* Orb */
+  .orb-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+    margin: 20px 0 28px;
+  }
+
+  .orb-wrapper {
+    position: relative;
+    width: 160px;
+    height: 160px;
+    cursor: pointer;
+  }
+
+  .orb-ring {
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    animation: ring-pulse 3s ease-in-out infinite;
+    border: 1.5px solid rgba(124,106,255,0.3);
+  }
+
+  .orb-ring:nth-child(2) {
+    inset: -12px;
+    border-color: rgba(255,106,176,0.2);
+    animation-delay: 1s;
+  }
+
+  .orb-ring:nth-child(3) {
+    inset: -24px;
+    border-color: rgba(106,255,212,0.15);
+    animation-delay: 2s;
+  }
+
+  @keyframes ring-pulse {
+    0%, 100% { opacity: 0.3; transform: scale(1); }
+    50% { opacity: 1; transform: scale(1.03); }
+  }
+
+  .orb {
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 35%,
+      rgba(160,130,255,0.9),
+      rgba(124,106,255,0.7) 40%,
+      rgba(80,60,200,0.9) 70%,
+      rgba(20,10,60,1) 100%
+    );
+    box-shadow:
+      0 0 40px var(--glow),
+      0 0 80px rgba(124,106,255,0.2),
+      inset 0 0 30px rgba(255,255,255,0.1);
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 42px;
+  }
+
+  .orb:active { transform: scale(0.95); }
+
+  .orb.listening {
+    animation: orb-listen 0.8s ease-in-out infinite alternate;
+    background: radial-gradient(circle at 35% 35%,
+      rgba(255,160,200,0.9),
+      rgba(255,106,176,0.7) 40%,
+      rgba(180,50,120,0.9) 70%,
+      rgba(40,10,30,1) 100%
+    );
+    box-shadow: 0 0 60px var(--glow2), 0 0 120px rgba(255,106,176,0.3);
+  }
+
+  .orb.speaking {
+    animation: orb-speak 0.6s ease-in-out infinite alternate;
+    background: radial-gradient(circle at 35% 35%,
+      rgba(130,255,220,0.9),
+      rgba(106,255,212,0.7) 40%,
+      rgba(50,180,140,0.9) 70%,
+      rgba(10,40,30,1) 100%
+    );
+    box-shadow: 0 0 60px rgba(106,255,212,0.4), 0 0 120px rgba(106,255,212,0.2);
+  }
+
+  @keyframes orb-listen {
+    from { transform: scale(1); box-shadow: 0 0 40px var(--glow2); }
+    to { transform: scale(1.08); box-shadow: 0 0 80px var(--glow2), 0 0 30px rgba(255,255,255,0.1); }
+  }
+
+  @keyframes orb-speak {
+    from { transform: scale(1); }
+    to { transform: scale(1.05); }
+  }
+
+  .orb-status {
+    font-size: 13px;
+    color: var(--muted);
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    text-align: center;
+  }
+
+  .orb-status.active { color: var(--accent2); }
+  .orb-status.speaking { color: var(--accent3); }
+
+  /* Waveform */
+  .waveform {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    height: 32px;
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+
+  .waveform.active { opacity: 1; }
+
+  .wave-bar {
+    width: 3px;
+    background: linear-gradient(to top, var(--accent), var(--accent2));
+    border-radius: 2px;
+    animation: wave-anim 0.6s ease-in-out infinite alternate;
+    min-height: 4px;
+  }
+
+  .wave-bar:nth-child(odd) { animation-delay: 0.1s; }
+  .wave-bar:nth-child(3n) { animation-delay: 0.2s; }
+  .wave-bar:nth-child(4n) { animation-delay: 0.3s; }
+
+  @keyframes wave-anim {
+    from { height: 4px; }
+    to { height: 28px; }
+  }
+
+  /* Transcript area */
+  .transcript-card {
+    background: var(--card);
+    border: 1px solid rgba(124,106,255,0.15);
+    border-radius: 20px;
+    padding: 16px;
+    margin-bottom: 12px;
+    min-height: 70px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .transcript-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, var(--accent), var(--accent2), var(--accent3));
+    opacity: 0.6;
+  }
+
+  .transcript-label {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: var(--muted);
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .transcript-label::before {
+    content: '';
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--accent2);
+    box-shadow: 0 0 6px var(--accent2);
+  }
+
+  .transcript-text {
+    font-family: 'Tiro Bangla', serif;
+    font-size: 15px;
+    line-height: 1.7;
+    color: var(--text);
+    min-height: 30px;
+  }
+
+  .transcript-text.en {
+    font-family: 'Syne', sans-serif;
+    font-size: 14px;
+  }
+
+  /* Response card */
+  .response-card {
+    background: linear-gradient(135deg, rgba(124,106,255,0.08), rgba(255,106,176,0.05));
+    border: 1px solid rgba(124,106,255,0.2);
+    border-radius: 20px;
+    padding: 16px;
+    margin-bottom: 20px;
+    min-height: 70px;
+  }
+
+  .response-label {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: var(--muted);
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .response-label::before {
+    content: '✦';
+    color: var(--accent);
+    font-size: 8px;
+  }
+
+  .response-text {
+    font-family: 'Tiro Bangla', serif;
+    font-size: 15px;
+    line-height: 1.8;
+    color: var(--text);
+  }
+
+  .response-text.en {
+    font-family: 'Syne', sans-serif;
+    font-size: 14px;
+    line-height: 1.6;
+  }
+
+  /* Command chips */
+  .commands-section {
+    margin-bottom: 20px;
+  }
+
+  .section-title {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: var(--muted);
+    margin-bottom: 12px;
+    padding-left: 4px;
+  }
+
+  .chips-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+
+  .chip {
+    background: var(--card);
+    border: 1px solid rgba(124,106,255,0.15);
+    border-radius: 12px;
+    padding: 10px 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: left;
+  }
+
+  .chip:active {
+    transform: scale(0.97);
+    border-color: var(--accent);
+    background: rgba(124,106,255,0.1);
+  }
+
+  .chip-icon { font-size: 16px; margin-bottom: 4px; display: block; }
+
+  .chip-text {
+    font-family: 'Tiro Bangla', serif;
+    font-size: 12px;
+    color: var(--text);
+    line-height: 1.4;
+    display: block;
+  }
+
+  .chip-text.en {
+    font-family: 'Syne', sans-serif;
+    font-size: 11px;
+  }
+
+  /* Settings panel */
+  .settings-bar {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 20px;
+  }
+
+  .setting-btn {
+    flex: 1;
+    background: var(--card);
+    border: 1px solid rgba(124,106,255,0.15);
+    border-radius: 12px;
+    padding: 10px;
+    cursor: pointer;
+    color: var(--muted);
+    font-size: 12px;
+    font-family: 'Syne', sans-serif;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    transition: all 0.2s;
+  }
+
+  .setting-btn.on {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: rgba(124,106,255,0.08);
+  }
+
+  .setting-btn:active { transform: scale(0.97); }
+
+  /* History */
+  .history-section { margin-bottom: 20px; }
+
+  .history-item {
+    padding: 10px 12px;
+    border-left: 2px solid rgba(124,106,255,0.3);
+    margin-bottom: 8px;
+    border-radius: 0 10px 10px 0;
+    background: rgba(255,255,255,0.02);
+  }
+
+  .history-q {
+    font-size: 12px;
+    color: var(--muted);
+    font-family: 'Tiro Bangla', serif;
+    margin-bottom: 2px;
+  }
+
+  .history-a {
+    font-size: 13px;
+    color: var(--text);
+    font-family: 'Tiro Bangla', serif;
+    line-height: 1.5;
+  }
+
+  /* Footer */
+  .footer {
+    margin-top: auto;
+    text-align: center;
+    padding: 16px 0;
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 1px;
+  }
+
+  /* Pulse dot */
+  .pulse-dot {
+    display: inline-block;
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--accent3);
+    animation: pulse-blink 1.5s ease-in-out infinite;
+    margin-right: 4px;
+  }
+
+  @keyframes pulse-blink {
+    0%, 100% { opacity: 0.3; }
+    50% { opacity: 1; }
+  }
+
+  /* Install banner */
+  .install-banner {
+    background: linear-gradient(135deg, rgba(124,106,255,0.15), rgba(255,106,176,0.1));
+    border: 1px solid rgba(124,106,255,0.25);
+    border-radius: 14px;
+    padding: 12px 16px;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+
+  .install-text {
+    font-size: 12px;
+    color: var(--text);
+    line-height: 1.4;
+  }
+
+  .install-btn {
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    border: none;
+    border-radius: 10px;
+    padding: 8px 14px;
+    color: white;
+    font-size: 12px;
+    font-weight: 700;
+    font-family: 'Syne', sans-serif;
+    cursor: pointer;
+    white-space: nowrap;
+    box-shadow: 0 0 15px var(--glow);
+  }
+
+  .install-banner.hidden { display: none; }
+
+  /* Scroll hint */
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: rgba(124,106,255,0.3); border-radius: 2px; }
+
+  /* Loading dots */
+  .loading-dots span {
+    display: inline-block;
+    animation: dot-bounce 1.2s ease-in-out infinite;
+    font-size: 20px;
+    color: var(--accent);
+  }
+
+  .loading-dots span:nth-child(2) { animation-delay: 0.2s; }
+  .loading-dots span:nth-child(3) { animation-delay: 0.4s; }
+
+  @keyframes dot-bounce {
+    0%, 100% { transform: translateY(0); opacity: 0.4; }
+    50% { transform: translateY(-5px); opacity: 1; }
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <!-- Header -->
+  <header>
+    <div class="logo">
+      <div class="logo-icon">🤖</div>
+      <div>
+        <div class="logo-text">ARIA</div>
+        <div class="logo-sub">ভয়েস অ্যাসিস্ট্যান্ট</div>
+      </div>
+    </div>
+    <div class="lang-toggle">
+      <button class="lang-btn active" id="btnBn" onclick="setLang('bn')">বাং</button>
+      <button class="lang-btn" id="btnEn" onclick="setLang('en')">EN</button>
+    </div>
+  </header>
+
+  <!-- Install Banner -->
+  <div class="install-banner" id="installBanner">
+    <div class="install-text">📱 হোম স্ক্রিনে যোগ করুন — অফলাইনে ব্যবহার করুন!</div>
+    <button class="install-btn" onclick="installApp()">Install</button>
+  </div>
+
+  <!-- Orb Section -->
+  <div class="orb-section">
+    <div class="orb-wrapper" onclick="toggleListening()">
+      <div class="orb-ring"></div>
+      <div class="orb-ring"></div>
+      <div class="orb-ring"></div>
+      <div class="orb" id="mainOrb">🎙️</div>
+    </div>
+    <div class="waveform" id="waveform">
+      <div class="wave-bar" style="height:8px"></div>
+      <div class="wave-bar" style="height:14px"></div>
+      <div class="wave-bar" style="height:20px"></div>
+      <div class="wave-bar" style="height:12px"></div>
+      <div class="wave-bar" style="height:24px"></div>
+      <div class="wave-bar" style="height:16px"></div>
+      <div class="wave-bar" style="height:28px"></div>
+      <div class="wave-bar" style="height:18px"></div>
+      <div class="wave-bar" style="height:22px"></div>
+      <div class="wave-bar" style="height:10px"></div>
+      <div class="wave-bar" style="height:16px"></div>
+      <div class="wave-bar" style="height:26px"></div>
+    </div>
+    <div class="orb-status" id="orbStatus">ট্যাপ করুন কথা বলতে</div>
+  </div>
+
+  <!-- Transcript -->
+  <div class="transcript-card">
+    <div class="transcript-label">আপনি বললেন</div>
+    <div class="transcript-text" id="transcriptText">—</div>
+  </div>
+
+  <!-- Response -->
+  <div class="response-card">
+    <div class="response-label">ARIA বলছে</div>
+    <div class="response-text" id="responseText">
+      <span class="pulse-dot"></span> প্রস্তুত আছি। কী সাহায্য করতে পারি?
+    </div>
+  </div>
+
+  <!-- Settings bar -->
+  <div class="settings-bar">
+    <button class="setting-btn on" id="btnVoice" onclick="toggleVoice()">🔊 ভয়েস</button>
+    <button class="setting-btn on" id="btnContinuous" onclick="toggleContinuous()">🔄 অটো</button>
+    <button class="setting-btn" id="btnHistory" onclick="toggleHistory()">📜 ইতিহাস</button>
+  </div>
+
+  <!-- Quick Commands -->
+  <div class="commands-section" id="commandsSection">
+    <div class="section-title">দ্রুত কমান্ড</div>
+    <div class="chips-grid" id="chipsGrid">
+      <!-- filled by JS -->
+    </div>
+  </div>
+
+  <!-- History Section -->
+  <div class="history-section" id="historySection" style="display:none">
+    <div class="section-title">কথোপকথনের ইতিহাস</div>
+    <div id="historyList"></div>
+  </div>
+
+  <div class="footer">
+    <span class="pulse-dot"></span>
+    অফলাইন • প্রাইভেট • সম্পূর্ণ বিনামূল্যে
+  </div>
+</div>
+
+<script>
+// ─────────────────────────────────────────────
+// STATE
+// ─────────────────────────────────────────────
+let currentLang = 'bn';
+let isListening = false;
+let voiceEnabled = true;
+let continuousMode = true;
+let recognition = null;
+let synth = window.speechSynthesis;
+let conversationHistory = [];
+let deferredPrompt = null;
+
+// ─────────────────────────────────────────────
+// LANGUAGE CONTENT
+// ─────────────────────────────────────────────
+const content = {
+  bn: {
+    tapHint: 'ট্যাপ করুন কথা বলতে',
+    listening: 'শুনছি...',
+    thinking: 'ভাবছি...',
+    speaking: 'বলছি...',
+    youSaid: 'আপনি বললেন',
+    ariaSays: 'ARIA বলছে',
+    ready: 'প্রস্তুত আছি। কী সাহায্য করতে পারি?',
+    commands: [
+      { icon: '🕐', text: 'এখন কয়টা বাজে?' },
+      { icon: '📅', text: 'আজকের তারিখ কত?' },
+      { icon: '🌤️', text: 'আবহাওয়া কেমন?' },
+      { icon: '🔢', text: 'গণনা করো: ২৫ × ৪' },
+      { icon: '💡', text: 'একটি মজার তথ্য বলো' },
+      { icon: '🎵', text: 'একটি কবিতা বলো' },
+      { icon: '🗓️', text: 'আজ কি বার?' },
+      { icon: '🔋', text: 'ব্যাটারি কত?' },
+    ],
+    langCode: 'bn-BD',
+    voiceBtn: '🔊 ভয়েস',
+    autoBtn: '🔄 অটো',
+    histBtn: '📜 ইতিহাস',
+  },
+  en: {
+    tapHint: 'Tap to speak',
+    listening: 'Listening...',
+    thinking: 'Thinking...',
+    speaking: 'Speaking...',
+    youSaid: 'You said',
+    ariaSays: 'ARIA says',
+    ready: 'Ready. How can I help you today?',
+    commands: [
+      { icon: '🕐', text: "What time is it?" },
+      { icon: '📅', text: "Today's date?" },
+      { icon: '🔢', text: "Calculate 25 × 4" },
+      { icon: '💡', text: "Tell me a fun fact" },
+      { icon: '🎵', text: "Tell me a joke" },
+      { icon: '🌐', text: "What can you do?" },
+      { icon: '📖', text: "Define: serendipity" },
+      { icon: '🔋', text: "System info" },
+    ],
+    langCode: 'en-US',
+    voiceBtn: '🔊 Voice',
+    autoBtn: '🔄 Auto',
+    histBtn: '📜 History',
+  }
+};
+
+// ─────────────────────────────────────────────
+// BUILT-IN KNOWLEDGE BASE (Offline responses)
+// ─────────────────────────────────────────────
+function getOfflineResponse(text, lang) {
+  const t = text.toLowerCase().trim();
+
+  // TIME
+  if (matchKeywords(t, ['বাজে', 'সময়', 'time', 'clock', 'কটা', 'কয়টা'])) {
+    const now = new Date();
+    const h = now.getHours();
+    const m = now.getMinutes().toString().padStart(2, '0');
+    const period = h < 12 ? 'সকাল' : h < 17 ? 'বিকেল' : h < 20 ? 'সন্ধ্যা' : 'রাত';
+    const h12 = h % 12 || 12;
+    if (lang === 'bn') return `এখন ${period} ${toBanglaNum(h12)}টা ${toBanglaNum(m)} মিনিট।`;
+    return `It's ${h12}:${m} ${h < 12 ? 'AM' : 'PM'} right now.`;
+  }
+
+  // DATE
+  if (matchKeywords(t, ['তারিখ', 'date', 'আজকে', 'today', 'কত তারিখ'])) {
+    const now = new Date();
+    const bnMonths = ['জানুয়ারি','ফেব্রুয়ারি','মার্চ','এপ্রিল','মে','জুন','জুলাই','আগস্ট','সেপ্টেম্বর','অক্টোবর','নভেম্বর','ডিসেম্বর'];
+    if (lang === 'bn') return `আজ ${toBanglaNum(now.getDate())} ${bnMonths[now.getMonth()]}, ${toBanglaNum(now.getFullYear())} সাল।`;
+    return `Today is ${now.toLocaleDateString('en-US', {weekday:'long', year:'numeric', month:'long', day:'numeric'})}.`;
+  }
+
+  // DAY OF WEEK
+  if (matchKeywords(t, ['কি বার', 'কী বার', 'কোন বার', 'day', 'weekday', 'বার'])) {
+    const bnDays = ['রবিবার', 'সোমবার', 'মঙ্গলবার', 'বুধবার', 'বৃহস্পতিবার', 'শুক্রবার', 'শনিবার'];
+    const d = new Date().getDay();
+    if (lang === 'bn') return `আজ ${bnDays[d]}।`;
+    return `Today is ${new Date().toLocaleDateString('en-US', {weekday: 'long'})}.`;
+  }
+
+  // MATH / CALCULATION
+  const mathMatch = t.match(/(\d+[\d\s]*[\+\-\×\*\/÷x×]\s*\d[\d\s]*)/);
+  if (mathMatch || matchKeywords(t, ['গণনা', 'calculate', 'যোগ', 'বিয়োগ', 'গুণ', 'ভাগ'])) {
+    try {
+      let expr = t.replace(/×|x/g, '*').replace(/÷/g, '/');
+      expr = expr.replace(/[^\d\s\+\-\*\/\.\(\)]/g, '').trim();
+      if (expr) {
+        const result = Function('"use strict"; return (' + expr + ')')();
+        if (lang === 'bn') return `উত্তর হলো: ${toBanglaNum(result)}`;
+        return `The answer is: ${result}`;
+      }
+    } catch(e) {}
+  }
+
+  // WEATHER (offline limitation)
+  if (matchKeywords(t, ['আবহাওয়া', 'weather', 'বৃষ্টি', 'রোদ', 'ঠান্ডা', 'গরম'])) {
+    if (lang === 'bn') return 'আমি অফলাইন মোডে আছি তাই রিয়েল-টাইম আবহাওয়া দেখাতে পারছি না। আপনার ফোনের Weather অ্যাপ দেখুন।';
+    return "I'm in offline mode, so I can't fetch real-time weather. Please check your phone's weather app.";
+  }
+
+  // BATTERY
+  if (matchKeywords(t, ['ব্যাটারি', 'battery', 'চার্জ'])) {
+    if ('getBattery' in navigator) {
+      navigator.getBattery().then(b => {
+        const pct = Math.round(b.level * 100);
+        const charging = b.charging ? (lang === 'bn' ? ' (চার্জ হচ্ছে)' : ' (charging)') : '';
+        const msg = lang === 'bn' ? `ব্যাটারি ${toBanglaNum(pct)}% আছে${charging}।` : `Battery is at ${pct}%${charging}.`;
+        setResponse(msg, lang);
+        if (voiceEnabled) speak(msg, lang);
+      });
+      return lang === 'bn' ? 'ব্যাটারি চেক করছি...' : 'Checking battery...';
+    }
+    return lang === 'bn' ? 'এই ডিভাইসে ব্যাটারি তথ্য পাওয়া যাচ্ছে না।' : 'Battery info not available on this device.';
+  }
+
+  // JOKES
+  const jokes = lang === 'bn' ? [
+    'একজন শিক্ষক জিজ্ঞেস করলেন, "পৃথিবী কী দিয়ে তৈরি?" ছাত্র বলল, "মাটি।" শিক্ষক: "আরও?" ছাত্র: "মাটির মা!" 😄',
+    'ডাক্তার: "আপনার হার্ট খুব দুর্বল।" রোগী: "তাহলে কী করব?" ডাক্তার: "বেশি হাসুন।" রোগী: "আপনার বিল দেখলেই হাসব!" 😂',
+    'বাবা: "তুমি পরীক্ষায় ফেল করেছ কেন?" ছেলে: "কারণ পাশের বন্ধু অনুপস্থিত ছিল!" 🤦',
+  ] : [
+    "Why don't scientists trust atoms? Because they make up everything! 😄",
+    "I told my wife she was drawing her eyebrows too high. She looked surprised. 😂",
+    "Why did the scarecrow win an award? Because he was outstanding in his field! 🌾",
+  ];
+
+  if (matchKeywords(t, ['জোকস', 'joke', 'মজা', 'হাসি', 'funny', 'কৌতুক'])) {
+    return jokes[Math.floor(Math.random() * jokes.length)];
+  }
+
+  // POEM
+  if (matchKeywords(t, ['কবিতা', 'poem', 'ছড়া', 'poetry'])) {
+    if (lang === 'bn') return `আমার সোনার বাংলা, আমি তোমায় ভালোবাসি।\nচিরদিন তোমার আকাশ, তোমার বাতাস, আমার প্রাণে বাজায় বাঁশি।`;
+    return "Roses are red, violets are blue,\nI'm your AI assistant, here just for you! 🌹";
+  }
+
+  // FUN FACTS
+  if (matchKeywords(t, ['তথ্য', 'fact', 'জানো', 'আশ্চর্য', 'interesting', 'মজার'])) {
+    const facts = lang === 'bn' ? [
+      'মানুষের মস্তিষ্কে প্রায় ১০০ বিলিয়ন নিউরন আছে — আকাশগঙ্গা ছায়াপথের তারার সমান! 🧠',
+      'অক্টোপাসের তিনটি হৃদয় আছে। দুটি ফুলকায় রক্ত পাঠায়, একটি সারা শরীরে। 🐙',
+      'মৌমাছি ডানা প্রতি সেকেন্ডে ২০০ বার ঝাপটায়, তাই "গুনগুন" শব্দ হয়। 🐝',
+      'বাংলা পৃথিবীর ৫ম সর্বাধিক কথ্য ভাষা — প্রায় ২৩ কোটি মানুষ কথা বলেন। 🌏',
+    ] : [
+      "A day on Venus is longer than a year on Venus! 🪐",
+      "Honey never spoils. Archaeologists found 3000-year-old honey in Egyptian tombs — still edible! 🍯",
+      "Octopuses have three hearts and blue blood! 🐙",
+      "The human brain generates about 23 watts of power when awake. 🧠",
+    ];
+    return facts[Math.floor(Math.random() * facts.length)];
+  }
+
+  // CAPABILITIES
+  if (matchKeywords(t, ['কী পারো', 'কি করতে', 'what can you', 'help', 'capabilities', 'সাহায্য', 'কমান্ড'])) {
+    if (lang === 'bn') return 'আমি পারি: সময় ও তারিখ বলতে, গণিত করতে, কৌতুক শোনাতে, মজার তথ্য দিতে, কবিতা বলতে, ব্যাটারি চেক করতে এবং আরও অনেক কিছু! শুধু জিজ্ঞেস করুন। 😊';
+    return "I can: tell time & date, do math, tell jokes & fun facts, recite poems, check battery, and much more! Just ask. 😊";
+  }
+
+  // NAME
+  if (matchKeywords(t, ['তোমার নাম', 'your name', 'কে তুমি', 'who are you', 'তুমি কে'])) {
+    if (lang === 'bn') return 'আমি ARIA — Artificial Responsive Intelligence Assistant। আপনার ব্যক্তিগত ভয়েস অ্যাসিস্ট্যান্ট! 🤖';
+    return "I'm ARIA — Artificial Responsive Intelligence Assistant. Your personal voice companion! 🤖";
+  }
+
+  // HELLO / GREETINGS
+  if (matchKeywords(t, ['হ্যালো', 'হেলো', 'নমস্কার', 'আস্সালামু', 'hello', 'hi', 'hey', 'সালাম'])) {
+    const greetings = lang === 'bn'
+      ? ['আস্সালামু আলাইকুম! কেমন আছেন? কী সাহায্য করতে পারি? 😊', 'হ্যালো! আপনার সাথে কথা বলতে পেরে আনন্দিত। কী জানতে চান?', 'নমস্কার! আমি ARIA। কী দিয়ে শুরু করব? 🌟']
+      : ['Hello there! How can I help you today? 😊', "Hi! I'm ARIA, your voice assistant. What can I do for you?", 'Hey! Great to hear from you. What would you like to know? 🌟'];
+    return greetings[Math.floor(Math.random() * greetings.length)];
+  }
+
+  // THANKS
+  if (matchKeywords(t, ['ধন্যবাদ', 'thank', 'thanks', 'শুক্রিয়া', 'জাযাকাল্লাহ'])) {
+    if (lang === 'bn') return 'আপনাকে স্বাগতম! আর কিছু জানতে চাইলে বলুন। 😊';
+    return "You're welcome! Feel free to ask anything else. 😊";
+  }
+
+  // GOODBYE
+  if (matchKeywords(t, ['বিদায়', 'goodbye', 'bye', 'আল্লাহ হাফেজ', 'রাখি'])) {
+    if (lang === 'bn') return 'আল্লাহ হাফেজ! ভালো থাকবেন। আবার কথা হবে। 👋';
+    return 'Goodbye! Have a great day! Come back anytime. 👋';
+  }
+
+  // DEFAULT
+  const defaults = lang === 'bn' ? [
+    'বুঝতে পারিনি। আরেকটু সহজ করে বলুন? 🤔',
+    'এই প্রশ্নটি একটু কঠিন! অন্য কিছু জিজ্ঞেস করুন।',
+    'আমি অফলাইনে কাজ করি তাই সব প্রশ্নের উত্তর দিতে পারি না। সহজ কিছু জিজ্ঞেস করুন।',
+  ] : [
+    "I'm not sure about that. Could you rephrase? 🤔",
+    "As an offline assistant, I have limited knowledge. Try asking something simpler!",
+    "Interesting question! Unfortunately I can't answer that in offline mode.",
+  ];
+  return defaults[Math.floor(Math.random() * defaults.length)];
+}
+
+function matchKeywords(text, keywords) {
+  return keywords.some(k => text.includes(k));
+}
+
+function toBanglaNum(n) {
+  const bn = ['০','১','২','৩','৪','৫','৬','৭','৮','৯'];
+  return String(n).replace(/[0-9]/g, d => bn[d]);
+}
+
+// ─────────────────────────────────────────────
+// SPEECH RECOGNITION
+// ─────────────────────────────────────────────
+function setupRecognition() {
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SpeechRecognition) {
+    setStatus('এই ব্রাউজারে ভয়েস সাপোর্ট নেই। Chrome ব্যবহার করুন।', 'error');
+    return null;
+  }
+
+  const r = new SpeechRecognition();
+  r.continuous = false;
+  r.interimResults = true;
+  r.lang = content[currentLang].langCode;
+  r.maxAlternatives = 3;
+
+  r.onstart = () => {
+    isListening = true;
+    setOrbState('listening');
+    setStatus(content[currentLang].listening, 'active');
+    document.getElementById('waveform').classList.add('active');
+  };
+
+  r.onresult = (e) => {
+    let transcript = '';
+    let isFinal = false;
+    for (let i = e.resultIndex; i < e.results.length; i++) {
+      transcript += e.results[i][0].transcript;
+      if (e.results[i].isFinal) isFinal = true;
+    }
+    setTranscript(transcript);
+    if (isFinal) processInput(transcript);
+  };
+
+  r.onerror = (e) => {
+    console.warn('Recognition error:', e.error);
+    stopListening();
+    if (e.error === 'no-speech') setStatus(content[currentLang].tapHint, '');
+    else if (e.error === 'not-allowed') setResponse(lang === 'bn' ? 'মাইক্রোফোনের অনুমতি দিন।' : 'Please allow microphone access.', currentLang);
+  };
+
+  r.onend = () => {
+    isListening = false;
+    document.getElementById('waveform').classList.remove('active');
+    if (continuousMode && !synth.speaking) {
+      setTimeout(() => {
+        if (!isListening && !synth.speaking) setOrbState('idle');
+        setStatus(content[currentLang].tapHint, '');
+      }, 800);
+    } else {
+      setOrbState('idle');
+      setStatus(content[currentLang].tapHint, '');
+    }
+  };
+
+  return r;
+}
+
+function toggleListening() {
+  if (isListening) {
+    stopListening();
+  } else {
+    startListening();
+  }
+}
+
+function startListening() {
+  if (synth.speaking) synth.cancel();
+  recognition = setupRecognition();
+  if (!recognition) return;
+  try {
+    recognition.start();
+  } catch(e) {
+    console.warn(e);
+  }
+}
+
+function stopListening() {
+  if (recognition) {
+    try { recognition.stop(); } catch(e) {}
+  }
+  isListening = false;
+  setOrbState('idle');
+  setStatus(content[currentLang].tapHint, '');
+  document.getElementById('waveform').classList.remove('active');
+}
+
+// ─────────────────────────────────────────────
+// PROCESS INPUT & RESPOND
+// ─────────────────────────────────────────────
+function processInput(text) {
+  if (!text.trim()) return;
+  setTranscript(text);
+  setStatus(content[currentLang].thinking, 'active');
+
+  setTimeout(() => {
+    const response = getOfflineResponse(text, currentLang);
+    setResponse(response, currentLang);
+    addHistory(text, response);
+
+    if (voiceEnabled && !response.includes('চেক করছি')) {
+      speak(response, currentLang);
+    }
+  }, 400);
+}
+
+function runCommand(text) {
+  setTranscript(text);
+  processInput(text);
+}
+
+// ─────────────────────────────────────────────
+// TEXT TO SPEECH
+// ─────────────────────────────────────────────
+function speak(text, lang) {
+  if (!synth) return;
+  synth.cancel();
+
+  // Strip emoji for cleaner TTS
+  const cleanText = text.replace(/[\u{1F000}-\u{1FFFF}]/gu, '').replace(/[😊🤔😄😂🌹🐙🐝🍯🧠🌟👋🌏🤖🎙️]/g, '').trim();
+
+  const utterance = new SpeechSynthesisUtterance(cleanText);
+  utterance.lang = content[lang].langCode;
+  utterance.rate = 0.9;
+  utterance.pitch = 1.1;
+  utterance.volume = 1;
+
+  // Try to pick a local voice
+  const voices = synth.getVoices();
+  const preferred = voices.find(v => v.lang.startsWith(lang === 'bn' ? 'bn' : 'en') && v.localService);
+  if (preferred) utterance.voice = preferred;
+
+  utterance.onstart = () => {
+    setOrbState('speaking');
+    setStatus(content[lang].speaking, 'speaking');
+  };
+
+  utterance.onend = () => {
+    setOrbState('idle');
+    setStatus(content[lang].tapHint, '');
+    if (continuousMode) {
+      setTimeout(() => {
+        if (!isListening) startListening();
+      }, 1000);
+    }
+  };
+
+  synth.speak(utterance);
+}
+
+// ─────────────────────────────────────────────
+// UI UPDATES
+// ─────────────────────────────────────────────
+function setOrbState(state) {
+  const orb = document.getElementById('mainOrb');
+  orb.className = 'orb';
+  if (state === 'listening') { orb.classList.add('listening'); orb.textContent = '👂'; }
+  else if (state === 'speaking') { orb.classList.add('speaking'); orb.textContent = '🗣️'; }
+  else { orb.textContent = '🎙️'; }
+}
+
+function setStatus(msg, cls) {
+  const el = document.getElementById('orbStatus');
+  el.textContent = msg;
+  el.className = 'orb-status ' + (cls || '');
+}
+
+function setTranscript(text) {
+  const el = document.getElementById('transcriptText');
+  el.textContent = text;
+  el.className = 'transcript-text' + (currentLang === 'en' ? ' en' : '');
+  document.querySelector('.transcript-label').textContent = content[currentLang].youSaid;
+}
+
+function setResponse(text, lang) {
+  const el = document.getElementById('responseText');
+  el.innerHTML = text.replace(/\n/g, '<br>');
+  el.className = 'response-text' + (lang === 'en' ? ' en' : '');
+  document.querySelector('.response-label').textContent = content[lang].ariaSays;
+  setStatus(content[lang].tapHint, '');
+}
+
+// ─────────────────────────────────────────────
+// LANGUAGE TOGGLE
+// ─────────────────────────────────────────────
+function setLang(lang) {
+  currentLang = lang;
+  document.getElementById('btnBn').classList.toggle('active', lang === 'bn');
+  document.getElementById('btnEn').classList.toggle('active', lang === 'en');
+  renderChips();
+  setStatus(content[lang].tapHint, '');
+  setResponse(content[lang].ready, lang);
+  document.getElementById('transcriptText').textContent = '—';
+  document.getElementById('btnVoice').textContent = content[lang].voiceBtn;
+  document.getElementById('btnContinuous').textContent = content[lang].autoBtn;
+  document.getElementById('btnHistory').textContent = content[lang].histBtn;
+  if (isListening) stopListening();
+  if (synth.speaking) synth.cancel();
+}
+
+// ─────────────────────────────────────────────
+// CHIPS
+// ─────────────────────────────────────────────
+function renderChips() {
+  const grid = document.getElementById('chipsGrid');
+  grid.innerHTML = '';
+  content[currentLang].commands.forEach(cmd => {
+    const chip = document.createElement('div');
+    chip.className = 'chip';
+    chip.innerHTML = `<span class="chip-icon">${cmd.icon}</span><span class="chip-text${currentLang === 'en' ? ' en' : ''}">${cmd.text}</span>`;
+    chip.onclick = () => runCommand(cmd.text);
+    grid.appendChild(chip);
+  });
+}
+
+// ─────────────────────────────────────────────
+// SETTINGS TOGGLES
+// ─────────────────────────────────────────────
+function toggleVoice() {
+  voiceEnabled = !voiceEnabled;
+  const btn = document.getElementById('btnVoice');
+  btn.classList.toggle('on', voiceEnabled);
+  if (!voiceEnabled && synth.speaking) synth.cancel();
+}
+
+function toggleContinuous() {
+  continuousMode = !continuousMode;
+  document.getElementById('btnContinuous').classList.toggle('on', continuousMode);
+}
+
+function toggleHistory() {
+  const hs = document.getElementById('historySection');
+  const cs = document.getElementById('commandsSection');
+  const visible = hs.style.display !== 'none';
+  hs.style.display = visible ? 'none' : 'block';
+  cs.style.display = visible ? 'block' : 'none';
+  document.getElementById('btnHistory').classList.toggle('on', !visible);
+}
+
+// ─────────────────────────────────────────────
+// HISTORY
+// ─────────────────────────────────────────────
+function addHistory(q, a) {
+  conversationHistory.unshift({ q, a });
+  if (conversationHistory.length > 10) conversationHistory.pop();
+  renderHistory();
+}
+
+function renderHistory() {
+  const list = document.getElementById('historyList');
+  list.innerHTML = '';
+  conversationHistory.forEach(item => {
+    const div = document.createElement('div');
+    div.className = 'history-item';
+    div.innerHTML = `<div class="history-q">❓ ${item.q}</div><div class="history-a">💬 ${item.a.replace(/<br>/g, ' ')}</div>`;
+    list.appendChild(div);
+  });
+}
+
+// ─────────────────────────────────────────────
+// PWA INSTALL
+// ─────────────────────────────────────────────
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredPrompt = e;
+  document.getElementById('installBanner').classList.remove('hidden');
+});
+
+function installApp() {
+  if (deferredPrompt) {
+    deferredPrompt.prompt();
+    deferredPrompt.userChoice.then(() => {
+      deferredPrompt = null;
+      document.getElementById('installBanner').classList.add('hidden');
+    });
+  }
+}
+
+window.addEventListener('appinstalled', () => {
+  document.getElementById('installBanner').classList.add('hidden');
+});
+
+// Hide install banner if already standalone
+if (window.matchMedia('(display-mode: standalone)').matches) {
+  document.getElementById('installBanner').classList.add('hidden');
+}
+
+// ─────────────────────────────────────────────
+// INIT
+// ─────────────────────────────────────────────
+window.onload = () => {
+  renderChips();
+  // Preload voices
+  if (synth) {
+    synth.getVoices();
+    synth.onvoiceschanged = () => synth.getVoices();
+  }
+};
+
+// Register service worker
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('sw.js').catch(() => {});
+}
+</script>
+</body>
+</html>
